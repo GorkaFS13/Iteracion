@@ -6,6 +6,7 @@ import exceptions.UserAlreadyExistException;
 import exceptions.UserDoesntExistException;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -90,6 +91,8 @@ public class LoginGUI extends JFrame {
 
 		jContentPane.add(jLabelMsg, null);
 		jContentPane.add(jLabelError, null);
+		jContentPane.setBorder(new EmptyBorder(20, 30, 20, 30));
+
 		this.setContentPane(jContentPane);
 
 

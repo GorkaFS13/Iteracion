@@ -6,6 +6,7 @@ import domain.User;
 import exceptions.UserAlreadyExistException;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,7 +43,7 @@ public class RegisterGUI extends JFrame {
 		jContentPane = new JPanel();
 		jComboType = new JComboBox<String>();
 		jComboType.addItem("Driver");
-		jComboType.addItem("Traveler");
+		jComboType.addItem("Traveller");
 
 		jContentPane.setLayout(new GridLayout(6, 1, 0, 0));
 
@@ -89,6 +90,8 @@ public class RegisterGUI extends JFrame {
 
 		jContentPane.add(jLabelMsg, null);
 		jContentPane.add(jLabelError, null);
+		jContentPane.setBorder(new EmptyBorder(20, 30, 20, 30));
+
 		this.setContentPane(jContentPane);
 
 
@@ -107,7 +110,7 @@ public class RegisterGUI extends JFrame {
 				String type = jComboType.getSelectedItem().toString();
 
 				User r=facade.createUser(username, password, type);
-				jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.RideCreated"));
+				jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Registered"));
 
 
 

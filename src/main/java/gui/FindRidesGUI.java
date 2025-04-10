@@ -4,7 +4,10 @@ import businessLogic.BLFacade;
 import configuration.UtilDate;
 
 import com.toedter.calendar.JCalendar;
+import domain.Driver;
 import domain.Ride;
+import domain.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -18,6 +21,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class FindRidesGUI extends JFrame {
 	private static final long serialVersionUID = 1L;
+	private final User currentUser;
 
 
 	private JComboBox<String> jComboBoxOrigin = new JComboBox<String>();
@@ -32,6 +36,7 @@ public class FindRidesGUI extends JFrame {
 	private final JLabel jLabelEvents = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.Rides")); 
 
 	private JButton jButtonClose = new JButton(ResourceBundle.getBundle("Etiquetas").getString("Close"));
+	private JButton jButtonRequest = new JButton(ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestRide"));
 
 	// Code for JCalendar
 	private JCalendar jCalendar1 = new JCalendar();
@@ -53,11 +58,11 @@ public class FindRidesGUI extends JFrame {
 	};
 
 
-	public FindRidesGUI()
+	public FindRidesGUI(User currentUser)
 	{
-
+		this.currentUser = currentUser;
 		this.getContentPane().setLayout(null);
-		this.setSize(new Dimension(700, 500));
+		this.setSize(new Dimension(700, 800));
 		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.FindRides"));
 
 		jLabelEventDate.setBounds(new Rectangle(457, 6, 140, 25));
@@ -67,6 +72,8 @@ public class FindRidesGUI extends JFrame {
 		this.getContentPane().add(jLabelEvents);
 
 		jButtonClose.setBounds(new Rectangle(274, 419, 130, 30));
+		jButtonRequest.setBounds(new Rectangle(400, 419, 130, 30));
+
 
 		jButtonClose.addActionListener(new ActionListener()
 		{
@@ -74,6 +81,16 @@ public class FindRidesGUI extends JFrame {
 			{
 				jButton2_actionPerformed(e);
 			}
+		});
+
+
+
+		jButtonRequest.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				jButtonRequest_actionPerformed(e);
+			}
+
+
 		});
 		BLFacade facade = MainGUI.getBusinessLogic();
 		List<String> origins=facade.getDepartCities();
@@ -127,9 +144,13 @@ public class FindRidesGUI extends JFrame {
 			}
 		});
 
-		this.getContentPane().add(jButtonClose, null);
-		this.getContentPane().add(jComboBoxOrigin, null);
 
+
+
+
+		this.getContentPane().add(jButtonClose, null);
+		this.getContentPane().add(jButtonRequest);
+		this.getContentPane().add(jComboBoxOrigin, null);
 		this.getContentPane().add(jComboBoxDestination, null);
 
 
@@ -227,6 +248,9 @@ public class FindRidesGUI extends JFrame {
 		datesWithRidesCurrentMonth=facade.getThisMonthDatesWithRides((String)jComboBoxOrigin.getSelectedItem(),(String)jComboBoxDestination.getSelectedItem(),jCalendar1.getDate());
 		paintDaysWithEvents(jCalendar1,datesWithRidesCurrentMonth,Color.CYAN);
 
+
+
+
 	}
 	public static void paintDaysWithEvents(JCalendar jCalendar,List<Date> datesWithEventsCurrentMonth, Color color) {
 		//		// For each day with events in current month, the background color for that day is changed to cyan.
@@ -271,8 +295,55 @@ public class FindRidesGUI extends JFrame {
 
 
 	}
+
+
+
 	private void jButton2_actionPerformed(ActionEvent e) {
 		this.setVisible(false);
 	}
+	BLFacade facade = MainGUI.getBusinessLogic();
+	private void jButtonRequest_actionPerformed(ActionEvent e) {
+		int selectedRow = tableRides.getSelectedRow();
+
+		if (selectedRow == -1) {
+			System.out.println("Select a ride");
+			return;
+		}
+
+		// Asegurar que el objeto en la columna 3 es realmente un Ride
+		Object rideObject = tableModelRides.getValueAt(selectedRow, 3);
+		if (!(rideObject instanceof Ride)) {
+			System.out.println("Error: el objeto seleccionado no es un Ride.");
+			return;
+		}
+
+		Ride selectedRide = (Ride) rideObject;
+
+
+
+		//Driver rideDriver = facade.getDriverRide(selectedRide);
+		Driver rideDriver = selectedRide.getDriver();
+		System.out.println("Ride seleccionada: " + selectedRide);
+		System.out.println("Ride driver: " + rideDriver);
+
+		// Obtener el Driver del Ride
+		//String rideDriver = selectedRide.getDriver().getEmail();
+		if (rideDriver == null) {
+			System.out.println("Error: No se encontró el driver del ride.");
+			return;
+		}
+
+		// Llamar al método requestRide en la fachada
+		boolean success = facade.requestRide(selectedRide, currentUser, rideDriver);
+
+		if (success) {
+			System.out.println("Solicitud enviada con éxito.");
+			System.out.println("Email del driver: " + rideDriver);
+			tableModelRides.removeRow(selectedRow);
+		} else {
+			System.out.println("Error al enviar la solicitud. Solucitud ya ha sido enviada anteriormenente");
+		}
+	}
+
 
 }

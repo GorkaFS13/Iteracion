@@ -25,9 +25,15 @@ public class Ride implements Serializable {
 	private int nPlaces;
 	private Date date;
 	private float price;
-	
-	private Driver driver;  
-	
+
+
+	private Driver driver;  // Relación con Driver
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_email") // Relación con el usuario que crea el ride
+	private User user;
+
+
 	public Ride(){
 		super();
 	}
@@ -41,6 +47,17 @@ public class Ride implements Serializable {
 		this.date=date;
 		this.price=price;
 		this.driver = driver;
+	}
+	public Ride(Integer rideNumber, String from, String to, Date date, int nPlaces, float price, Driver driver, User user) {
+		super();
+		this.rideNumber = rideNumber;
+		this.from = from;
+		this.to = to;
+		this.nPlaces = nPlaces;
+		this.date=date;
+		this.price=price;
+		this.driver = driver;
+		this.user = user;
 	}
 
 	

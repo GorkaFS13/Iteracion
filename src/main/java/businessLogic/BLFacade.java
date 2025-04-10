@@ -4,12 +4,11 @@ import java.util.Date;
 import java.util.List;
 
 //import domain.Booking;
+import domain.Driver;
 import domain.Ride;
 import domain.User;
-import exceptions.RideMustBeLaterThanTodayException;
-import exceptions.RideAlreadyExistException;
-import exceptions.UserAlreadyExistException;
-import exceptions.UserDoesntExistException;
+import domain.RideRequest;
+import exceptions.*;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
@@ -51,6 +50,8 @@ public interface BLFacade  {
    @WebMethod
    public Ride createRide( String from, String to, Date date, int nPlaces, float price, String driverEmail) throws RideMustBeLaterThanTodayException, RideAlreadyExistException;
 
+	@WebMethod
+	public boolean updateRide(Ride currentRide, String from, String to, Date date) throws RideMustBeLaterThanTodayException, RideAlreadyExistException;
 
 	/**
 	 * This method retrieves the rides from two locations on a given date 
@@ -103,5 +104,27 @@ public interface BLFacade  {
 	@WebMethod public void initializeBD();
 
 
+
+
 	public User getUser(String username) throws UserDoesntExistException;
+
+	@WebMethod public boolean requestRide(Ride selectedRide, User currentUser, Driver rideDriver);
+
+	@WebMethod public List<RideRequest> getRequestsRide(Ride ride, Driver driver);
+
+	@WebMethod public List<Ride> getRidesDriver(Driver driver);
+
+	@WebMethod public Driver getDriverRide(Ride ride);
+
+	@WebMethod public boolean UpdatePlaces(Ride selectedRide);
+
+	@WebMethod public boolean updateRequest(RideRequest request);
+
+	@WebMethod public boolean removeRequest(RideRequest request);
+
+	@WebMethod public boolean payRequest(RideRequest request);
+
+	@WebMethod public List<RideRequest> getRequestsUser(User currentUser);
+
+
 }

@@ -7,12 +7,11 @@ import javax.jws.WebService;
 
 import configuration.ConfigXML;
 import dataAccess.DataAccess;
+import domain.Driver;
 import domain.Ride;
 import domain.User;
-import exceptions.RideMustBeLaterThanTodayException;
-import exceptions.RideAlreadyExistException;
-import exceptions.UserAlreadyExistException;
-import exceptions.UserDoesntExistException;
+import domain.RideRequest;
+import exceptions.*;
 
 /**
  * It implements the business logic as a web service.
@@ -70,15 +69,29 @@ public class BLFacadeImplementation  implements BLFacade {
 	/**
 	 * {@inheritDoc}
 	 */
-   @WebMethod
-   public Ride createRide( String from, String to, Date date, int nPlaces, float price, String driverEmail ) throws RideMustBeLaterThanTodayException, RideAlreadyExistException{
-	   
+	@WebMethod
+	public Ride createRide( String from, String to, Date date, int nPlaces, float price, String driverEmail ) throws RideMustBeLaterThanTodayException, RideAlreadyExistException{
+
 		dbManager.open();
 		Ride ride=dbManager.createRide(from, to, date, nPlaces, price, driverEmail);
 		System.out.println("Ride: " + ride);
 		dbManager.close();
 		return ride;
-   };
+	};
+
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@WebMethod
+	public boolean updateRide( Ride currentRide, String from, String to, Date date) throws RideMustBeLaterThanTodayException, RideAlreadyExistException{
+
+		dbManager.open();
+		boolean success =dbManager.updateRide(currentRide, from, to, date);
+		dbManager.close();
+		return success;
+	};
 	
    /**
     * {@inheritDoc}
@@ -87,6 +100,14 @@ public class BLFacadeImplementation  implements BLFacade {
 	public List<Ride> getRides(String from, String to, Date date){
 		dbManager.open();
 		List<Ride>  rides=dbManager.getRides(from, to, date);
+		dbManager.close();
+		return rides;
+	}
+	@WebMethod
+
+	public List<Ride> getRidesDriver(Driver driver){
+		dbManager.open();
+		List<Ride> rides=dbManager.getRidesDriver(driver);
 		dbManager.close();
 		return rides;
 	}
@@ -136,6 +157,8 @@ public class BLFacadeImplementation  implements BLFacade {
 		System.out.println("Return" + user.getPassword().equals(password));
 		return(user.getPassword().equals(password));
 	}
+
+
 	public User getUser(String username) throws UserDoesntExistException {
 		dbManager.open();
 		User user = dbManager.getUser(username);
@@ -144,7 +167,25 @@ public class BLFacadeImplementation  implements BLFacade {
 	}
 
 
-	;
+
+	@Override
+	public boolean requestRide(Ride selectedRide, User currentUser, Driver driver) {
+		dbManager.open();
+		boolean done = dbManager.requestRide(selectedRide, currentUser, driver);
+		dbManager.close();
+		return done;
+
+	}
+
+	@WebMethod
+	 public List<RideRequest> getRequestsRide(Ride ride, Driver driver){
+		dbManager.open();
+		List<RideRequest>  requestUsers=dbManager.getRequestsRide(ride, driver);
+		dbManager.close();
+		return requestUsers;
+	 }
+
+
 
 	/**
 	 * {@inheritDoc}
@@ -155,6 +196,50 @@ public class BLFacadeImplementation  implements BLFacade {
 		dbManager.initializeDB();
 		dbManager.close();
 	}
+
+
+	public Driver getDriverRide(Ride ride){
+		dbManager.open();
+		Driver driver=dbManager.getDriverRide(ride);
+		dbManager.close();
+		return driver;
+	}
+	public boolean UpdatePlaces(Ride selectedRide){
+		dbManager.open();
+		Boolean places = dbManager.UpdatePlaces(selectedRide);
+		dbManager.close();
+		return places;
+	}
+	public boolean updateRequest(RideRequest request){
+		dbManager.open();
+		Boolean t = dbManager.updateRequest(request);
+		dbManager.close();
+		return t;
+	}
+
+	public boolean removeRequest(RideRequest request){
+		dbManager.open();
+		Boolean x = dbManager.removeRequest(request);
+		dbManager.close();
+		return x;
+	}
+
+	public boolean payRequest(RideRequest request){
+		dbManager.open();
+		Boolean y = dbManager.payRequest(request);
+		dbManager.close();
+		return y;
+	}
+
+	public List<RideRequest> getRequestsUser(User currentUser){
+		dbManager.open();
+		List<RideRequest>  requestUser=dbManager.getRequestsUser(currentUser);
+		dbManager.close();
+		return requestUser;
+	}
+
+
+
 
 }
 

@@ -6,7 +6,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlIDREF;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -26,7 +25,7 @@ public class Traveller extends User implements Serializable{
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
 	private List<Ride> rides=new Vector<Ride>();
 
-	public Traveller() {
+	public Traveller(User currentUser) {
 		super();
 	}
 

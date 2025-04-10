@@ -1,0 +1,26 @@
+------------------------------------------------------------------------------------------------------------------------
+
+[2025-04-02 22:21:56 #1 store] 
+Database '/home/a/Downloads/Rides24-master (2)/Rides24-master/src/main/resources/rides.temp' has been recovered (tr. 183-195)
+
+[2025-04-02 22:21:56 #2 store] 
+Database '/home/a/Downloads/Rides24-master (2)/Rides24-master/src/main/resources/rides.temp' is opened by 51028@fedora
+
+[2025-04-02 22:21:56 #3 store] 
+Configuration path: ?
+
+[2025-04-02 22:21:56 #4 type] 
+Type domain.User is not enhanced.
+
+[2025-04-02 22:21:56 #5 type] 
+Type domain.Driver is not enhanced.
+
+[2025-04-02 22:21:56 #6 type] 
+Type domain.Ride is not enhanced.
+
+[2025-04-02 22:21:56 #7 type] 
+Type domain.Payment is not enhanced.
+
+[2025-04-02 22:21:56 #8 type] 
+Type domain.RideRequest is not enhanced.
+

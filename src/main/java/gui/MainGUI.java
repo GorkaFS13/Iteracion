@@ -6,8 +6,11 @@ package gui;
 
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
+//import com.sun.net.httpserver.Request;
 import domain.Driver;
+import domain.Traveller;
 import domain.User;
 import businessLogic.BLFacade;
 
@@ -29,6 +32,13 @@ public class MainGUI extends JFrame {
 	private JButton jButtonRegister = null;
 	private JButton jButtonLogin = null;
 	private JButton jButtonQueryQueries = null;
+	private JButton jButtonRequestsStates = null;
+	private JButton jButtonModifyRide = null;
+
+
+	private JButton jButtonVisualizeRequests = null;
+
+	private  JButton jButtonRequestRide = null;
 
     private static BLFacade appFacadeInterface;
 	
@@ -40,6 +50,7 @@ public class MainGUI extends JFrame {
 		appFacadeInterface=afi;
 	}
 	protected JLabel jLabelSelectOption;
+	private JLabel jLabelUserType;
 	private JRadioButton rdbtnNewRadioButton;
 	private JRadioButton rdbtnNewRadioButton_1;
 	private JRadioButton rdbtnNewRadioButton_2;
@@ -59,6 +70,7 @@ public class MainGUI extends JFrame {
 		
 		// this.setSize(271, 295);
 		currentUser = login.getCurrentUser();
+		jLabelUserType = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.UserTypeUndefined"));;
 
 		this.setSize(495, 290);
 		jLabelSelectOption = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.SelectOption"));
@@ -111,15 +123,61 @@ public class MainGUI extends JFrame {
 			}
 		});
 
+		jButtonVisualizeRequests = new JButton();
+		jButtonVisualizeRequests.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.VisualizeQueries"));
+		jButtonVisualizeRequests.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				currentUser = login.getCurrentUser();
+				System.out.println("Current user: " + currentUser);
+				if (currentUser instanceof Driver) {
+					JFrame a = new VisualizeRequestsGUI((Driver) currentUser);
+					a.setVisible(true);
+				} else {
+					System.out.println("El usuario actual no es un conductor.");
+				}
+			}
+		});
+
+		jButtonModifyRide = new JButton();
+		jButtonModifyRide.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.ModifyRide"));
+		jButtonModifyRide.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				currentUser = login.getCurrentUser();
+				System.out.println("Current user: " + currentUser);
+				if (currentUser instanceof Driver) {
+					JFrame a = new ModifyRideGUI((Driver) currentUser);
+					a.setVisible(true);
+				} else {
+					System.out.println("El usuario actual no es un conductor.");
+				}
+			}
+		});
+
+
 		jButtonQueryQueries = new JButton();
 		jButtonQueryQueries.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.QueryRides"));
 		jButtonQueryQueries.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				JFrame a = new FindRidesGUI();
+				currentUser = login.getCurrentUser();
+
+				JFrame a = new FindRidesGUI(currentUser);
 
 				a.setVisible(true);
 			}
 		});
+
+		jButtonRequestsStates = new JButton();
+		jButtonRequestsStates.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.RequestsStates"));
+		jButtonRequestsStates.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				currentUser = login.getCurrentUser();
+				System.out.println("Current user: " + currentUser);
+					JFrame a = new RequestsStateGUI( currentUser);
+					a.setVisible(true);
+
+			}
+		});
+
 
 
 		jButtonLogin = new JButton();
@@ -143,25 +201,59 @@ public class MainGUI extends JFrame {
 			@Override
 			public void windowActivated(WindowEvent e) {
 				System.out.println(login.getLoginDone());
-				System.out.println("Curret User" + currentUser);
+				System.out.println("Current User" + currentUser);
+
+
 				currentUser = login.getCurrentUser();
-				if (currentUser != null) {
-					showQuery(currentUser.getType().equals("Traveler"));
-					showRides(currentUser.getType().equals("Driver"));
+				if (currentUser != null){
+					if(currentUser.getType().equals("Driver")) {
+						jLabelUserType.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.UserTypeDriver"));
+						showRides(true);
+						showQuery(false);
+					}
+					else {
+						jLabelUserType.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.UserTypeTraveller"));
+						showRides(false);
+						showQuery(true);
+					}
 				}
 			}
 		});
 
 		jContentPane = new JPanel();
+		jContentPane.setLayout(new BoxLayout(jContentPane, BoxLayout.Y_AXIS));
+		jContentPane.setBorder(new EmptyBorder(20, 30, 20, 30));
 
-		jContentPane.setLayout(new GridLayout(6, 1, 0, 0));
-		jContentPane.add(jButtonCreateQuery);
-		jContentPane.add(jButtonQueryQueries);
 
-		jContentPane.add(jLabelSelectOption);
+		JPanel panel2 = new JPanel();
+		panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
+		panel2.setBorder(new EmptyBorder(20, 30, 20, 30));
+		jButtonLogin.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonRegister.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonModifyRide.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jLabelSelectOption.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonCreateQuery.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonVisualizeRequests.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonQueryQueries.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jButtonRequestsStates.setAlignmentX(panel2.CENTER_ALIGNMENT);
+		jLabelUserType.setAlignmentX(panel2.CENTER_ALIGNMENT);
 
-		jContentPane.add(jButtonLogin);
-		jContentPane.add(jButtonRegister);
+		panel2.add(jLabelSelectOption);
+
+		panel2.add(jButtonLogin);
+		panel2.add(jButtonRegister);
+
+		panel2.add(jLabelUserType);
+
+		panel2.add(jButtonModifyRide);
+
+		panel2.add(jButtonCreateQuery);
+		panel2.add(jButtonVisualizeRequests);
+		panel2.add(jButtonQueryQueries);
+		panel2.add(jButtonRequestsStates);
+
+		jContentPane.add(panel2);
+
 		jContentPane.add(panel);
 
 		showRides(false);
@@ -183,14 +275,21 @@ public class MainGUI extends JFrame {
 
 	private void showRides(boolean visibility) {
 		jButtonCreateQuery.setVisible(visibility);
+		jButtonModifyRide.setVisible(visibility);
+		jButtonVisualizeRequests.setVisible(visibility);
+
+
 	}
 	private void showQuery(boolean visibility) {
 		jButtonQueryQueries.setVisible(visibility);
+		jButtonRequestsStates.setVisible(visibility);
 	}
 	private void paintAgain() {
 		jLabelSelectOption.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.SelectOption"));
 		jButtonQueryQueries.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.QueryRides"));
 		jButtonCreateQuery.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.CreateRide"));
+		jButtonVisualizeRequests.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.VisualizeQueries"));
+		jButtonRequestsStates.setText(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.RequestsStates"));
 		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("MainGUI.MainTitle")+ " - driver :"+driver.getUsername());
 	}
 	

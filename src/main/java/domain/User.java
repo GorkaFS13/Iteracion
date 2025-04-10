@@ -29,7 +29,7 @@ public class User implements Serializable {
 		return type;
 	}
 
-	private String password;
+	String password;
 
 	public String getEmail() {
 		return email;

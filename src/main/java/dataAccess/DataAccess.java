@@ -1,8 +1,5 @@
 package dataAccess;
 
-import java.io.File;
-import java.net.NoRouteToHostException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,9 +15,7 @@ import javax.persistence.TypedQuery;
 
 import configuration.ConfigXML;
 import configuration.UtilDate;
-import domain.Driver;
-import domain.User;
-import domain.Ride;
+import domain.*;
 import exceptions.RideAlreadyExistException;
 import exceptions.UserAlreadyExistException;
 import exceptions.RideMustBeLaterThanTodayException;
@@ -161,10 +156,19 @@ public class DataAccess  {
 				throw new RideMustBeLaterThanTodayException(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorRideMustBeLaterThanToday"));
 			}
 			db.getTransaction().begin();
-			User user = db.find(User.class, driverEmail);
-			System.out.println("User:::::: " + user);
+			Driver driver = db.find(Driver.class, driverEmail);
+			if (driver == null) {
+				// Si no existe, buscar el usuario primero
+				User user = db.find(User.class, driverEmail);
+				if (user == null) {
+					db.getTransaction().rollback();
+					throw new IllegalArgumentException("User not found with email: " + driverEmail);
+				}
+				// Convertir usuario a conductor si es necesario
+				driver = new Driver(user);
+				db.persist(driver); // Solo persistir si es nuevo
+			}
 
-			Driver driver = new Driver(user);
 			System.out.println("Driver:::::: " + driver);
 			if (driver.doesRideExists(from, to, date)) {
 				db.getTransaction().commit();
@@ -182,8 +186,31 @@ public class DataAccess  {
 			db.getTransaction().commit();
 			return null;
 		}
-		
-		
+
+
+	}
+
+	public boolean updateRide(Ride currentRide, String from, String to, Date date) throws  RideAlreadyExistException, RideMustBeLaterThanTodayException {
+		db.getTransaction().begin();
+		Ride ride = db.find(Ride.class, currentRide.getRideNumber());
+
+		if(new Date().compareTo(date)>0) {
+			throw new RideMustBeLaterThanTodayException(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorRideMustBeLaterThanToday"));
+		}
+		if (date != null)
+			ride.setDate(date);
+
+		if (from != null)
+			ride.setFrom(from);
+
+		if (to != null)
+			ride.setTo(to);
+
+
+		db.merge(ride);
+		db.getTransaction().commit();
+		return true;
+
 	}
 	
 	/**
@@ -197,9 +224,8 @@ public class DataAccess  {
 	public List<Ride> getRides(String from, String to, Date date) {
 		System.out.println(">> DataAccess: getRides=> from= "+from+" to= "+to+" date "+date);
 
-		List<Ride> res = new ArrayList<>();	
-		TypedQuery<Ride> query = db.createQuery("SELECT r FROM Ride r WHERE r.from=?1 AND r.to=?2 AND r.date=?3",Ride.class);   
-		query.setParameter(1, from);
+		List<Ride> res = new ArrayList<>();
+		TypedQuery<Ride> query = db.createQuery("SELECT r FROM Ride r LEFT JOIN FETCH r.driver WHERE r.from = ?1 AND r.to = ?2 AND r.date = ?3", Ride.class);		query.setParameter(1, from);
 		query.setParameter(2, to);
 		query.setParameter(3, date);
 		List<Ride> rides = query.getResultList();
@@ -208,7 +234,6 @@ public class DataAccess  {
 		  }
 	 	return res;
 	}
-	
 	/**
 	 * This method retrieves from the database the dates a month for which there are events
 	 * @param from the origin location of a ride
@@ -264,13 +289,14 @@ public class DataAccess  {
 			db.persist(user1);
 			db.getTransaction().commit();
 
+
 			return user1;
-		} catch (NullPointerException e) {
+		}
+		catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			db.getTransaction().commit();
 			return null;
 		}
-
 
 	}
 	public User getUser(String username) throws UserDoesntExistException {
@@ -319,6 +345,169 @@ public void open(){
 		System.out.println("DataAcess closed");
 	}
 
+
+
+
+	public boolean requestRide(Ride selectedRide, User currentUser, Driver driver) {
+		try {
+			TypedQuery<RideRequest> query = db.createQuery(
+					"SELECT r FROM RideRequest r WHERE r.ride = :ride AND r.driver = :driver AND r.user = :user", RideRequest.class);
+			query.setParameter("ride", selectedRide);  // Establece el ride específico
+			query.setParameter("driver", driver);  // Establece el driver específico
+			query.setParameter("user", currentUser);  // Establece el driver específico
+
+			List<RideRequest> requests = query.getResultList();
+			if (requests.isEmpty()) {
+				db.getTransaction().begin(); // Inicia la transacción
+			/*Driver rideDriver = db.find(Driver.class, driver.getUsername());
+			if(rideDriver != null){
+				System.out.println("Existe el driver:"+ rideDriver);
+			}
+			rideDriver.addRequest(currentUser, selectedRide); // Añadir la solicitud al driver
+			db.merge(rideDriver);*/
+				RideRequest request = new RideRequest(selectedRide, currentUser, driver);
+				db.persist(request);
+				db.getTransaction().commit(); // Confirmar la transacción
+				return true;
+			}else{
+				return false;
+			}
+		} catch (Exception e) {
+			if (db.getTransaction().isActive()) {
+				db.getTransaction().rollback(); // Revierte si hay error
+			}
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+
+	public List<RideRequest> getRequestsRide(Ride ride, Driver driver) {
+		System.out.println(">> DataAccess: getRequestsRide => Driver: " + driver.getUsername() + ", Ride: " + ride);
+
+		try {
+			// Crear la consulta para obtener los usuarios de la tabla intermedia requestRide
+			TypedQuery<RideRequest> query = db.createQuery(
+					"SELECT r FROM RideRequest r WHERE r.ride = :ride AND r.driver = :driver", RideRequest.class);
+			query.setParameter("ride", ride);  // Establece el ride específico
+			query.setParameter("driver", driver);  // Establece el driver específico
+
+			// Ejecutar la consulta y obtener los usuarios
+			List<RideRequest> users = query.getResultList();
+			return users;  // Retorna la lista de usuarios que hicieron la solicitud
+		} catch (Exception e) {
+			e.printStackTrace();  // Captura cualquier error
+			return new ArrayList<>();  // Si ocurre un error, retorna una lista vacía
+		}
+	}
+
+
+
+	public List<Ride> getRidesDriver(Driver driver) {
+		System.out.println(">> DataAccess: getRidesDriver=> from= "+driver.getUsername());
+
+		List<Ride> res = new ArrayList<>();
+		TypedQuery<Ride> query = db.createQuery("SELECT r FROM Ride r WHERE r.driver = :driver", Ride.class);
+		query.setParameter("driver", driver);
+
+		List<Ride> rides = query.getResultList();
+		for (Ride ride:rides){
+			res.add(ride);
+		}
+		return res;
+	}
+
+	public Driver getDriverRide(Ride ride) {
+		System.out.println(">> DataAccess: getDriverRide=> from= "+ride.getDriver());
+
+		List<Driver> res = new ArrayList<>();
+		TypedQuery<Driver> query = db.createQuery("SELECT d FROM Driver d WHERE :ride MEMBER OF d.rides", Driver.class);
+		query.setParameter("ride", ride);
+		List<Driver> drivers = query.getResultList();
+        return drivers.get(0);
+
+	}
+
+	public Boolean UpdatePlaces(Ride selectedRide) {
+		db.getTransaction().begin();
+		Ride ride = db.find(Ride.class, selectedRide.getRideNumber());
+		int places = (int) ride.getnPlaces();
+		if (places>0){
+			ride.setBetMinimum(places-1);
+			db.merge(ride);
+			db.getTransaction().commit();
+			return true;
+		}
+		else{
+			db.getTransaction().commit();
+			return false;
+
+		}
+
+	}
+
+	public Boolean updateRequest(RideRequest request) {
+		db.getTransaction().begin();
+		RideRequest req = db.find(RideRequest.class, request.getId());
+		if (req == null){
+			return false;
+		}else {
+			req.setState("Accepted");
+			System.out.println(req.getState());
+			db.merge(req);
+			db.getTransaction().commit();
+			return true;
+		}
+	}
+
+	public Boolean removeRequest(RideRequest request) {
+		try{
+			db.getTransaction().begin();
+			RideRequest request2 = db.find(RideRequest.class, request);
+			db.remove(request2);
+			db.getTransaction().commit();
+			return true;
+		}catch (Exception e) {
+			e.printStackTrace();  // Captura cualquier error
+			return false;
+		}
+
+	}
+
+	public Boolean payRequest(RideRequest request) {
+		System.out.println(">> DataAccess: payRequest=> " + request);
+
+		db.getTransaction().begin();
+		RideRequest req = db.find(RideRequest.class, request.getId());
+		if (req == null){
+			return false;
+		}else {
+			Payment payment = req.getPayment();
+			payment.setPrice(request.getRide().getPrice());
+			payment.setStatus("Done");
+
+			System.out.println("New state for payment: " + req.getPayment());
+			db.merge(req);
+			db.getTransaction().commit();
+			return true;
+		}
+	}
+
+	public List<RideRequest> getRequestsUser(User currentUser) {
+
+		try {
+			// Crear la consulta para obtener los usuarios de la tabla intermedia requestRide
+			TypedQuery<RideRequest> query = db.createQuery("SELECT r FROM RideRequest r WHERE r.user = :user", RideRequest.class);
+			query.setParameter("user", currentUser);
+
+
+			List<RideRequest> requests = query.getResultList();
+			return requests;
+		} catch (Exception e) {
+			e.printStackTrace();  // Captura cualquier error
+			return new ArrayList<>();  // Si ocurre un error, retorna una lista vacía
+		}
+	}
 
 
 }
