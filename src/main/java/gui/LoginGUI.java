@@ -25,7 +25,7 @@ public class LoginGUI extends JFrame {
 
 
 	private JTextField jTextFieldUsername = new JTextField();
-	private JTextField jTextFieldPassword = new JTextField();
+	private JPasswordField jTextFieldPassword = new JPasswordField();
 
 
 	private JScrollPane scrollPaneEvents = new JScrollPane();
@@ -37,91 +37,97 @@ public class LoginGUI extends JFrame {
 	private JPanel jContentPane = null;
 
 	private List<Date> datesWithEventsCurrentMonth;
+
+	public void setLoginDone(boolean loginDone) {
+		this.loginDone = loginDone;
+	}
+
 	private boolean loginDone;
+
+
 	private User currentUser = null;
 
 	public LoginGUI() {
-		System.out.println("añsldkjfañlskdfjñlkajsdfñlkj");
-		loginDone=false;
-		User currentUser;
+		loginDone = false;
+		this.setSize(new Dimension(400, 300));
+		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("LoginGUI.Login"));
+		this.setLocationRelativeTo(null); 
+		this.setResizable(false);
 		this.getContentPane().setLayout(null);
-		jContentPane = new JPanel();
 
-		jContentPane.setLayout(new GridLayout(6, 1, 0, 0));
-
-		this.setSize(new Dimension(604, 370));
-		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Register"));
-
-		jLabelUsername.setBounds(new Rectangle(6, 159, 173, 20));
-		jLabelPassword.setBounds(new Rectangle(6, 119, 173, 20));
-
-		jTextFieldUsername.setBounds(new Rectangle(139, 159, 60, 20));
-		jTextFieldPassword.setBounds(new Rectangle(139, 159, 60, 20));
-
-		scrollPaneEvents.setBounds(new Rectangle(25, 44, 346, 116));
-
-		jButtonLogin.setBounds(new Rectangle(100, 263, 130, 30));
-
+		
+		jLabelUsername.setBounds(new Rectangle(50, 70, 120, 20));
+		jTextFieldUsername.setBounds(new Rectangle(180, 70, 150, 20));
+		
+		jLabelPassword.setBounds(new Rectangle(50, 110, 120, 20));
+		jTextFieldPassword.setBounds(new Rectangle(180, 110, 150, 20));
+		
+		jButtonLogin.setBounds(new Rectangle(100, 180, 100, 30));
+		jButtonClose.setBounds(new Rectangle(220, 180, 100, 30));
+		
+		jLabelMsg.setBounds(new Rectangle(50, 220, 300, 20));
+		jLabelMsg.setForeground(Color.RED);
+		jLabelMsg.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		
+		this.getContentPane().add(jLabelUsername);
+		this.getContentPane().add(jTextFieldUsername);
+		this.getContentPane().add(jLabelPassword);
+		this.getContentPane().add(jTextFieldPassword);
+		this.getContentPane().add(jButtonLogin);
+		this.getContentPane().add(jButtonClose);
+		this.getContentPane().add(jLabelMsg);
+		
+		
+		JLabel titleLabel = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("LoginGUI.Login"));
+		titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		titleLabel.setBounds(new Rectangle(50, 20, 300, 30));
+		this.getContentPane().add(titleLabel);
+		
+		
 		jButtonLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonLogin_actionPerformed(e);
 			}
 		});
-		jButtonClose.setBounds(new Rectangle(275, 263, 130, 30));
+
 		jButtonClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonClose_actionPerformed(e);
 			}
 		});
-
-		jLabelMsg.setBounds(new Rectangle(275, 214, 305, 20));
-		jLabelMsg.setForeground(Color.red);
-
-		jLabelError.setBounds(new Rectangle(6, 191, 320, 20));
-		jLabelError.setForeground(Color.red);
-
-
-		jContentPane.add(jLabelUsername, null);
-		jContentPane.add(jTextFieldUsername, null);
-		jContentPane.add(jLabelPassword, null);
-		jContentPane.add(jTextFieldPassword, null);
-
-		jContentPane.add(jButtonClose, null);
-		jContentPane.add(jButtonLogin, null);
-
-		jContentPane.add(jLabelMsg, null);
-		jContentPane.add(jLabelError, null);
-		jContentPane.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-		this.setContentPane(jContentPane);
-
-
-
-	}	 
+	}
+	
 	private void jButtonLogin_actionPerformed(ActionEvent e) {
 		jLabelMsg.setText("");
 		String error=field_Errors();
-		if (error!=null) 
+		if (error!=null)
 			jLabelMsg.setText(error);
 		else
 			try {
 				BLFacade facade = MainGUI.getBusinessLogic();
 				String username = jTextFieldUsername.getText();
-				String password = jTextFieldPassword.getText();
+				String password = new String(jTextFieldPassword.getPassword());
 
 				boolean userExists =facade.checkUser(username, password);
 				if (userExists) {
 					loginDone = true;
 					currentUser = facade.getUser(username);
 					System.out.println("loginDone: " + loginDone);
+					jLabelMsg.setForeground(new Color(0, 128, 0)); 
 					jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("LoginGUI.LoginDone"));
+
+					
+					jTextFieldUsername.setText("");
+					jTextFieldPassword.setText("");
 				}
 				else{
+					jLabelMsg.setForeground(Color.RED);
 					jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("LoginGUI.LoginFailedPassword"));
 				}
 
 			} catch (UserDoesntExistException e1) {
-				// TODO Auto-generated catch block
+				
 				jLabelMsg.setText(e1.getMessage());
 			}
 
@@ -134,42 +140,16 @@ public class LoginGUI extends JFrame {
 		return currentUser;
 	}
 
+	public void setCurrentUser(User currentUser) {
+		this.currentUser = currentUser;
+	}
+
+
 	private void jButtonClose_actionPerformed(ActionEvent e) {
 		this.setVisible(false);
 	}
 	private String field_Errors() {
-		/*
-		try {
-			if ((fieldOrigin.getText().length()==0) || (fieldDestination.getText().length()==0) || (jTextFieldSeats.getText().length()==0) || (jTextFieldPrice.getText().length()==0))
-				return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorQuery");
-			else {
-
-				// trigger an exception if the introduced string is not a number
-				int inputSeats = Integer.parseInt(jTextFieldSeats.getText());
-
-				if (inputSeats <= 0) {
-					return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.SeatsMustBeGreaterThan0");
-				}
-				else {
-					float price = Float.parseFloat(jTextFieldPrice.getText());
-					if (price <= 0) 
-						return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.PriceMustBeGreaterThan0");
-					
-					else 
-						return null;
-						
-				}
-			}
-		} catch (NumberFormatException e1) {
-
-			return  ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorNumber");		
-		} catch (Exception e1) {
-
-			e1.printStackTrace();
-			return null;
-
-		}
-		*/
+		
 		return null;
 	}
 }

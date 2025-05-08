@@ -6,9 +6,7 @@ public class UserDoesntExistException extends Exception {
   {
     super();
   }
-  /**This exception is triggered if the question already exists
-  *@param s String of the exception
-  */
+  
   public UserDoesntExistException(String s)
   {
     super(s);

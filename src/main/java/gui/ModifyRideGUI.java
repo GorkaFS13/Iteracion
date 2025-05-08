@@ -46,7 +46,7 @@ public class ModifyRideGUI extends JFrame {
     private final JButton jButtonClose = new JButton(ResourceBundle.getBundle("Etiquetas").getString("Close"));
     private final JButton jButtonAccept = new JButton(ResourceBundle.getBundle("Etiquetas").getString("VisualizeRequestsGUI.AcceptRequest"));
 
-    // Textos internacionalizados
+    
     private String selectRideText = "Select a ride:";
     private String userColumnText = "User";
     private String windowTitle = "Driver Ride Requests";
@@ -79,12 +79,12 @@ public class ModifyRideGUI extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // 🔹 Panel superior con ComboBox
+        
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         topPanel.add(new JLabel(selectRideText));
         topPanel.add(ridesComboBox);
 
-        // 🔹 Panel inferior con botones
+        
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.add(jButtonAccept);
         bottomPanel.add(jButtonClose);
@@ -94,7 +94,7 @@ public class ModifyRideGUI extends JFrame {
         midPannel.setBorder(new EmptyBorder(20, 30, 20, 30));
 
 
-        // 🔹 Agregar eventos de los botones
+        
         jButtonClose.addActionListener(e -> setVisible(false));
         jButtonAccept.addActionListener(this::jButtonAccept_actionPerformed);
 
@@ -112,7 +112,7 @@ public class ModifyRideGUI extends JFrame {
 
         midPannel.add(jLabelMsg, null);
 
-        // 🔹 Agregar componentes al JFrame
+        
         add(topPanel, BorderLayout.NORTH);
         add(midPannel, BorderLayout.CENTER);
 
@@ -136,10 +136,10 @@ public class ModifyRideGUI extends JFrame {
             jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.RideUpdated"));
 
         } catch (RideMustBeLaterThanTodayException e1) {
-            // TODO Auto-generated catch block
+            
             jLabelMsg.setText(e1.getMessage());
         } catch (RideAlreadyExistException e1) {
-            // TODO Auto-generated catch block
+            
             jLabelMsg.setText(e1.getMessage());
         }
 

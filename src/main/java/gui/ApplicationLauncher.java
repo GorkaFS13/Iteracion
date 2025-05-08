@@ -28,7 +28,7 @@ public class ApplicationLauncher {
 		
 		System.out.println("Locale: "+Locale.getDefault());
 		
-	    //Driver driver=new Driver("driver3@gmail.com","Test Driver");
+	    
 
 		
 		MainGUI a=new MainGUI();
@@ -48,15 +48,13 @@ public class ApplicationLauncher {
 				
 			}
 			
-			else { //If remote
+			else { 
 				
 				 String serviceName= "http://"+c.getBusinessLogicNode() +":"+ c.getBusinessLogicPort()+"/ws/"+c.getBusinessLogicName()+"?wsdl";
 				 
 				URL url = new URL(serviceName);
 
 		 
-		        //1st argument refers to wsdl document above
-				//2nd argument is service name, refer to wsdl document above
 		        QName qname = new QName("http://businessLogic/", "BLFacadeImplementationService");
 		 
 		        Service service = Service.create(url, qname);
@@ -75,7 +73,7 @@ public class ApplicationLauncher {
 			
 			System.out.println("Error in ApplicationLauncher: "+e.toString());
 		}
-		//a.pack();
+		
 
 
 	}

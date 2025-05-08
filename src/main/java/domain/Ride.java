@@ -27,10 +27,10 @@ public class Ride implements Serializable {
 	private float price;
 
 
-	private Driver driver;  // Relación con Driver
+	private Driver driver;  
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_email") // Relación con el usuario que crea el ride
+	@JoinColumn(name = "user_email") 
 	private User user;
 
 
@@ -72,86 +72,51 @@ public class Ride implements Serializable {
 		this.driver = driver;
 	}
 	
-	/**
-	 * Get the  number of the ride
-	 * 
-	 * @return the ride number
-	 */
+	
 	public Integer getRideNumber() {
 		return rideNumber;
 	}
 
 	
-	/**
-	 * Set the ride number to a ride
-	 * 
-	 * @param ride Number to be set	 */
+	
 	
 	public void setRideNumber(Integer rideNumber) {
 		this.rideNumber = rideNumber;
 	}
 
 
-	/**
-	 * Get the origin  of the ride
-	 * 
-	 * @return the origin location
-	 */
+	
 
 	public String getFrom() {
 		return from;
 	}
 
 
-	/**
-	 * Set the origin of the ride
-	 * 
-	 * @param origin to be set
-	 */	
+		
 	
 	public void setFrom(String origin) {
 		this.from = origin;
 	}
 
-	/**
-	 * Get the destination  of the ride
-	 * 
-	 * @return the destination location
-	 */
+	
 
 	public String getTo() {
 		return to;
 	}
 
 
-	/**
-	 * Set the origin of the ride
-	 * 
-	 * @param destination to be set
-	 */	
+		
 	public void setTo(String destination) {
 		this.to = destination;
 	}
 
-	/**
-	 * Get the free places of the ride
-	 * 
-	 * @return the available places
-	 */
 	
-	/**
-	 * Get the date  of the ride
-	 * 
-	 * @return the ride date 
-	 */
+	
+	
 	public Date getDate() {
 		return date;
 	}
-	/**
-	 * Set the date of the ride
-	 * 
-	 * @param date to be set
-	 */	
+		
 	public void setDate(Date date) {
 		this.date = date;
 	}
@@ -161,30 +126,18 @@ public class Ride implements Serializable {
 		return nPlaces;
 	}
 
-	/**
-	 * Set the free places of the ride
-	 * 
-	 * @param  nPlaces places to be set
-	 */
+	
 
 	public void setBetMinimum(int nPlaces) {
 		this.nPlaces = nPlaces;
 	}
 
-	/**
-	 * Get the driver associated to the ride
-	 * 
-	 * @return the associated driver
-	 */
+	
 	public Driver getDriver() {
 		return driver;
 	}
 
-	/**
-	 * Set the driver associated to the ride
-	 * 
-	 * @param driver to associate to the ride
-	 */
+	
 	public void setDriver(Driver driver) {
 		this.driver = driver;
 	}

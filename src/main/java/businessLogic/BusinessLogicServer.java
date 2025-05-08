@@ -1,6 +1,4 @@
-/**
- * Package with the business logic of the application.
- */
+
 package businessLogic;
 
 import java.awt.BorderLayout;
@@ -23,14 +21,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/**
- * It runs the business logic server as a separate process.
- */
+
 public class BusinessLogicServer extends JDialog {
 
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	JTextArea textArea;
@@ -75,7 +69,7 @@ public class BusinessLogicServer extends JDialog {
 					public void actionPerformed(ActionEvent e) {
 						textArea.append("\n\n\nClosing the server... ");
 					    
-							//server.close();
+							
 						
 						System.exit(1);
 					}

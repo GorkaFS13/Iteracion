@@ -17,9 +17,7 @@ import javax.swing.JTextArea;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-/**
- * It runs the database server as a separate process.
- */
+
 public class ObjectdbManagerServer extends JDialog {
 
 
@@ -28,11 +26,11 @@ public class ObjectdbManagerServer extends JDialog {
 	JTextArea textArea;
 	ConfigXML c;
 	
-	//For windows
+	
     private String objectDbpath="src\\main\\resources\\objectdb.jar";
     
-    //For mac 
-    //private String objectDbpath="src//main//resources//objectdb.jar";
+    
+    
 
  	
 

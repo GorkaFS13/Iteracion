@@ -15,9 +15,7 @@ import java.util.Vector;
 @Entity
 public class Payment {
 
-	/**
-	 *
-	 */
+	
 
 
 	@XmlID
@@ -31,14 +29,24 @@ public class Payment {
 
 	public Payment(float price) {
 		status = "Waiting";
-		this.price = price;
+		
+		this.price = (price > 0) ? price : 1.0f; 
+		if (price <= 0) {
+			System.out.println("Warning: Attempted to create Payment with invalid price: " + price + ". Using default price: 1.0");
+		}
 	}
 
 	public void setStatus(String newStatus) {
 		this.status = newStatus;
 	}
+
 	public void setPrice(float newPrice) {
-		this.price = newPrice;
+		
+		if (newPrice > 0) {
+			this.price = newPrice;
+		} else {
+			System.out.println("Warning: Attempted to set invalid price: " + newPrice + ". Price not updated.");
+		}
 	}
 
 	public float getPrice() {

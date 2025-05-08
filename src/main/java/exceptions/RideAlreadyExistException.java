@@ -6,9 +6,7 @@ public class RideAlreadyExistException extends Exception {
   {
     super();
   }
-  /**This exception is triggered if the question already exists 
-  *@param s String of the exception
-  */
+  
   public RideAlreadyExistException(String s)
   {
     super(s);

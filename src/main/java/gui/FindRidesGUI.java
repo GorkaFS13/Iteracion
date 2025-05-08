@@ -4,19 +4,20 @@ import businessLogic.BLFacade;
 import configuration.UtilDate;
 
 import com.toedter.calendar.JCalendar;
+import domain.CarType;
 import domain.Driver;
 import domain.Ride;
 import domain.User;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.List;
-
-import javax.swing.table.DefaultTableModel;
 
 
 public class FindRidesGUI extends JFrame {
@@ -33,12 +34,40 @@ public class FindRidesGUI extends JFrame {
 	private JLabel jLabelOrigin = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.LeavingFrom"));
 	private JLabel jLabelDestination = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.GoingTo"));
 	private final JLabel jLabelEventDate = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.RideDate"));
-	private final JLabel jLabelEvents = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.Rides")); 
+	private final JLabel jLabelEvents = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.Rides"));
+	private final JLabel jLabelComment = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Comment"));
 
 	private JButton jButtonClose = new JButton(ResourceBundle.getBundle("Etiquetas").getString("Close"));
 	private JButton jButtonRequest = new JButton(ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestRide"));
 
-	// Code for JCalendar
+	private JTextArea jTextAreaComment = new JTextArea(3, 30);
+	{
+		
+		final String placeholderText = ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Comment");
+		jTextAreaComment.setText(placeholderText);
+		jTextAreaComment.setForeground(Color.GRAY);
+
+		
+		jTextAreaComment.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				if (jTextAreaComment.getText().equals(placeholderText)) {
+					jTextAreaComment.setText("");
+					jTextAreaComment.setForeground(Color.BLACK);
+				}
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (jTextAreaComment.getText().isEmpty()) {
+					jTextAreaComment.setText(placeholderText);
+					jTextAreaComment.setForeground(Color.GRAY);
+				}
+			}
+		});
+	}
+
+	
 	private JCalendar jCalendar1 = new JCalendar();
 	private Calendar calendarAnt = null;
 	private Calendar calendarAct = null;
@@ -52,9 +81,11 @@ public class FindRidesGUI extends JFrame {
 
 
 	private String[] columnNamesRides = new String[] {
-			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Driver"), 
-			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.NPlaces"), 
-			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Price")
+			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Driver"),
+			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.NPlaces"),
+			ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Price"),
+			"Rating",
+			"Car"
 	};
 
 
@@ -94,9 +125,9 @@ public class FindRidesGUI extends JFrame {
 		});
 		BLFacade facade = MainGUI.getBusinessLogic();
 		List<String> origins=facade.getDepartCities();
-		
+
 		for(String location:origins) originLocations.addElement(location);
-		
+
 		jLabelOrigin.setBounds(new Rectangle(6, 56, 92, 20));
 		jLabelDestination.setBounds(6, 81, 61, 16);
 		getContentPane().add(jLabelOrigin);
@@ -105,13 +136,13 @@ public class FindRidesGUI extends JFrame {
 
 		jComboBoxOrigin.setModel(originLocations);
 		jComboBoxOrigin.setBounds(new Rectangle(103, 50, 172, 20));
-		
+
 
 		List<String> aCities=facade.getDestinationCities((String)jComboBoxOrigin.getSelectedItem());
 		for(String aciti:aCities) {
 			destinationCities.addElement(aciti);
 		}
-		
+
 		jComboBoxOrigin.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				destinationCities.removeAllElements();
@@ -124,7 +155,7 @@ public class FindRidesGUI extends JFrame {
 				tableModelRides.getDataVector().removeAllElements();
 				tableModelRides.fireTableDataChanged();
 
-				
+
 			}
 		});
 
@@ -148,6 +179,14 @@ public class FindRidesGUI extends JFrame {
 
 
 
+		
+		JScrollPane commentScrollPane = new JScrollPane(jTextAreaComment);
+		commentScrollPane.setBounds(new Rectangle(172, 350, 346, 60));
+		jLabelComment.setBounds(new Rectangle(172, 330, 200, 20));
+
+		this.getContentPane().add(jLabelComment);
+		this.getContentPane().add(commentScrollPane);
+
 		this.getContentPane().add(jButtonClose, null);
 		this.getContentPane().add(jButtonRequest);
 		this.getContentPane().add(jComboBoxOrigin, null);
@@ -157,7 +196,7 @@ public class FindRidesGUI extends JFrame {
 		jCalendar1.setBounds(new Rectangle(300, 50, 225, 150));
 
 
-		// Code for JCalendar
+		
 		jCalendar1.addPropertyChangeListener(new PropertyChangeListener()
 		{
 			public void propertyChange(PropertyChangeEvent propertychangeevent)
@@ -171,9 +210,9 @@ public class FindRidesGUI extends JFrame {
 				{
 					calendarAnt = (Calendar) propertychangeevent.getOldValue();
 					calendarAct = (Calendar) propertychangeevent.getNewValue();
-					
 
-					
+
+
 					DateFormat dateformat1 = DateFormat.getDateInstance(1, jCalendar1.getLocale());
 
 					int monthAnt = calendarAnt.get(Calendar.MONTH);
@@ -181,19 +220,19 @@ public class FindRidesGUI extends JFrame {
 
 					if (monthAct!=monthAnt) {
 						if (monthAct==monthAnt+2) {
-							// Si en JCalendar está 30 de enero y se avanza al mes siguiente, devolvería 2 de marzo (se toma como equivalente a 30 de febrero)
-							// Con este código se dejará como 1 de febrero en el JCalendar
+							
+							
 							calendarAct.set(Calendar.MONTH, monthAnt+1);
 							calendarAct.set(Calendar.DAY_OF_MONTH, 1);
-						}						
+						}
 
 						jCalendar1.setCalendar(calendarAct);
 
 					}
-					
+
 					try {
 						tableModelRides.setDataVector(null, columnNamesRides);
-						tableModelRides.setColumnCount(4); // another column added to allocate ride objects
+						tableModelRides.setColumnCount(6); 
 
 						BLFacade facade = MainGUI.getBusinessLogic();
 						List<domain.Ride> rides=facade.getRides((String)jComboBoxOrigin.getSelectedItem(),(String)jComboBoxDestination.getSelectedItem(),UtilDate.trim(jCalendar1.getDate()));
@@ -202,11 +241,30 @@ public class FindRidesGUI extends JFrame {
 						else jLabelEvents.setText(ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Rides")+ ": "+dateformat1.format(calendarAct.getTime()));
 						for (domain.Ride ride:rides){
 							Vector<Object> row = new Vector<Object>();
-							row.add(ride.getDriver().getUsername());
+							Driver driver = ride.getDriver();
+							row.add(driver.getUsername());
 							row.add(ride.getnPlaces());
 							row.add(ride.getPrice());
-							row.add(ride); // ev object added in order to obtain it with tableModelEvents.getValueAt(i,3)
-							tableModelRides.addRow(row);		
+
+							
+							float rating = driver.getAverageRating();
+							int totalRatings = driver.getTotalRatings();
+							String ratingText;
+
+							if (totalRatings > 0) {
+								
+								ratingText = String.format("%.1f ★ (%d)", rating, totalRatings);
+							} else {
+								ratingText = "Not rated";
+							}
+
+							row.add(ratingText);
+
+							
+							row.add(driver.getCarType().getDisplayName());
+
+							row.add(ride); 
+							tableModelRides.addRow(row);
 						}
 						datesWithRidesCurrentMonth=facade.getThisMonthDatesWithRides((String)jComboBoxOrigin.getSelectedItem(),(String)jComboBoxDestination.getSelectedItem(),jCalendar1.getDate());
 						paintDaysWithEvents(jCalendar1,datesWithRidesCurrentMonth,Color.CYAN);
@@ -216,14 +274,23 @@ public class FindRidesGUI extends JFrame {
 
 						e1.printStackTrace();
 					}
-					tableRides.getColumnModel().getColumn(0).setPreferredWidth(170);
-					tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);
-					tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);
-					tableRides.getColumnModel().removeColumn(tableRides.getColumnModel().getColumn(3)); // not shown in JTable
+					
+					tableRides.setRowHeight(70);
+
+					tableRides.getColumnModel().getColumn(0).setPreferredWidth(120); 
+					tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);  
+					tableRides.getColumnModel().getColumn(2).setPreferredWidth(30);  
+					tableRides.getColumnModel().getColumn(3).setPreferredWidth(80);  
+					tableRides.getColumnModel().getColumn(4).setPreferredWidth(80);  
+
+					
+					tableRides.getColumnModel().getColumn(4).setCellRenderer(new CarTypeRenderer());
+
+					tableRides.getColumnModel().removeColumn(tableRides.getColumnModel().getColumn(5)); 
 
 				}
-			} 
-			
+			}
+
 		});
 
 		this.getContentPane().add(jCalendar1, null);
@@ -235,14 +302,34 @@ public class FindRidesGUI extends JFrame {
 
 		tableRides.setModel(tableModelRides);
 
+		
+		tableRides.setRowHeight(70);
+
+		
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setVerticalAlignment(SwingConstants.CENTER);
+		centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+		
+		for (int i = 0; i < tableRides.getColumnCount(); i++) {
+			if (i != 4) { 
+				tableRides.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+			}
+		}
+
 		tableModelRides.setDataVector(null, columnNamesRides);
-		tableModelRides.setColumnCount(4); // another column added to allocate ride objects
+		tableModelRides.setColumnCount(6); 
 
-		tableRides.getColumnModel().getColumn(0).setPreferredWidth(170);
-		tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);
-		tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);
+		tableRides.getColumnModel().getColumn(0).setPreferredWidth(120); 
+		tableRides.getColumnModel().getColumn(1).setPreferredWidth(30);  
+		tableRides.getColumnModel().getColumn(2).setPreferredWidth(30);  
+		tableRides.getColumnModel().getColumn(3).setPreferredWidth(80);  
+		tableRides.getColumnModel().getColumn(4).setPreferredWidth(80);  
 
-		tableRides.getColumnModel().removeColumn(tableRides.getColumnModel().getColumn(3)); // not shown in JTable
+		
+		tableRides.getColumnModel().getColumn(4).setCellRenderer(new CarTypeRenderer());
+
+		tableRides.getColumnModel().removeColumn(tableRides.getColumnModel().getColumn(5)); 
 
 		this.getContentPane().add(scrollPaneEvents, null);
 		datesWithRidesCurrentMonth=facade.getThisMonthDatesWithRides((String)jComboBoxOrigin.getSelectedItem(),(String)jComboBoxDestination.getSelectedItem(),jCalendar1.getDate());
@@ -253,7 +340,7 @@ public class FindRidesGUI extends JFrame {
 
 	}
 	public static void paintDaysWithEvents(JCalendar jCalendar,List<Date> datesWithEventsCurrentMonth, Color color) {
-		//		// For each day with events in current month, the background color for that day is changed to cyan.
+		
 
 
 		Calendar calendar = jCalendar.getCalendar();
@@ -276,14 +363,14 @@ public class FindRidesGUI extends JFrame {
 			calendar.setTime(d);
 
 
-			// Obtain the component of the day in the panel of the DayChooser of the
-			// JCalendar.
-			// The component is located after the decorator buttons of "Sun", "Mon",... or
-			// "Lun", "Mar"...,
-			// the empty days before day 1 of month, and all the days previous to each day.
-			// That number of components is calculated with "offset" and is different in
-			// English and Spanish
-			//			    		  Component o=(Component) jCalendar.getDayChooser().getDayPanel().getComponent(i+offset);; 
+			
+			
+			
+			
+			
+			
+			
+			
 			Component o = (Component) jCalendar.getDayChooser().getDayPanel()
 					.getComponent(calendar.get(Calendar.DAY_OF_MONTH) + offset);
 			o.setBackground(color);
@@ -310,8 +397,8 @@ public class FindRidesGUI extends JFrame {
 			return;
 		}
 
-		// Asegurar que el objeto en la columna 3 es realmente un Ride
-		Object rideObject = tableModelRides.getValueAt(selectedRow, 3);
+		
+		Object rideObject = tableModelRides.getValueAt(selectedRow, 5);
 		if (!(rideObject instanceof Ride)) {
 			System.out.println("Error: el objeto seleccionado no es un Ride.");
 			return;
@@ -321,29 +408,103 @@ public class FindRidesGUI extends JFrame {
 
 
 
-		//Driver rideDriver = facade.getDriverRide(selectedRide);
+		
 		Driver rideDriver = selectedRide.getDriver();
 		System.out.println("Ride seleccionada: " + selectedRide);
 		System.out.println("Ride driver: " + rideDriver);
 
-		// Obtener el Driver del Ride
-		//String rideDriver = selectedRide.getDriver().getEmail();
+		
+		
 		if (rideDriver == null) {
 			System.out.println("Error: No se encontró el driver del ride.");
 			return;
 		}
 
-		// Llamar al método requestRide en la fachada
-		boolean success = facade.requestRide(selectedRide, currentUser, rideDriver);
+		
+		String comment = jTextAreaComment.getText().trim();
+
+		
+		String placeholderText = ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Comment");
+		if (comment.equals(placeholderText)) {
+			comment = "";
+		}
+
+		
+		boolean success = facade.requestRide(selectedRide, currentUser, rideDriver, comment);
 
 		if (success) {
 			System.out.println("Solicitud enviada con éxito.");
 			System.out.println("Email del driver: " + rideDriver);
+			
+			placeholderText = ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.Comment");
+			jTextAreaComment.setText(placeholderText);
+			jTextAreaComment.setForeground(Color.GRAY);
 			tableModelRides.removeRow(selectedRow);
+
+			
+			JOptionPane.showMessageDialog(this,
+				ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestSuccess"),
+				ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestSuccess"),
+				JOptionPane.INFORMATION_MESSAGE);
 		} else {
 			System.out.println("Error al enviar la solicitud. Solucitud ya ha sido enviada anteriormenente");
+			JOptionPane.showMessageDialog(this,
+				ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestFail"),
+				ResourceBundle.getBundle("Etiquetas").getString("FindRidesGUI.RequestFail"),
+				JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
+	
+	class CarTypeRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
 
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+
+			
+			JLabel label = (JLabel) super.getTableCellRendererComponent(
+					table, value, isSelected, hasFocus, row, column);
+
+			
+			label.setHorizontalAlignment(SwingConstants.CENTER);
+			label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+			if (value != null) {
+				
+				try {
+					CarType carType = CarType.fromDisplayName(value.toString());
+					
+					ImageIcon icon = carType.getScaledImageIcon(80, 50);
+
+					if (icon != null) {
+						
+						label.setIcon(icon);
+						
+						label.setText(carType.getDisplayName());
+						label.setHorizontalTextPosition(SwingConstants.CENTER);
+						label.setVerticalTextPosition(SwingConstants.BOTTOM);
+
+						
+						label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+					} else {
+						
+						label.setIcon(null);
+						label.setText(value.toString());
+					}
+				} catch (Exception e) {
+					
+					label.setIcon(null);
+					label.setText(value.toString());
+				}
+			} else {
+				
+				label.setIcon(null);
+				label.setText("");
+			}
+
+			return label;
+		}
+	}
 }

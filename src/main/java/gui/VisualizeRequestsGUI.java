@@ -7,6 +7,7 @@ import domain.RideRequest;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -24,7 +25,7 @@ public class VisualizeRequestsGUI extends JFrame {
     private final JButton jButtonClose = new JButton(ResourceBundle.getBundle("Etiquetas").getString("Close"));
     private final JButton jButtonAccept = new JButton(ResourceBundle.getBundle("Etiquetas").getString("VisualizeRequestsGUI.AcceptRequest"));
 
-    // Textos internacionalizados
+    
     private String selectRideText = "Select a ride:";
     private String userColumnText = "User";
     private String windowTitle = "Driver Ride Requests";
@@ -57,30 +58,102 @@ public class VisualizeRequestsGUI extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // 🔹 Panel superior con ComboBox
+        
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new JLabel(selectRideText));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10)); 
+
+        JLabel selectRideLabel = new JLabel(selectRideText);
+        selectRideLabel.setFont(new Font("Arial", Font.BOLD, 12));
+
+        topPanel.add(selectRideLabel);
         topPanel.add(ridesComboBox);
 
-        // 🔹 Configurar la tabla con un JScrollPane
-        tableModel = new DefaultTableModel(new Object[]{userColumnText, "Ride (String)", "Ride (Object)", "Request(Object)"},0);
+        
+        tableModel = new DefaultTableModel(new Object[]{"Traveler", "Ride", "Comment", "Ride (Object)", "Request(Object)"},0);
         requestsTable.setModel(tableModel);
+
+        
+        requestsTable.setRowHeight(30); 
+        requestsTable.setIntercellSpacing(new Dimension(10, 5)); 
+        requestsTable.setShowGrid(true); 
+        requestsTable.setGridColor(new Color(230, 230, 230)); 
+        requestsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12)); 
+        requestsTable.setSelectionBackground(new Color(232, 242, 254)); 
+
+        
+        requestsTable.getColumnModel().getColumn(0).setPreferredWidth(100); 
+        requestsTable.getColumnModel().getColumn(1).setPreferredWidth(200); 
+        requestsTable.getColumnModel().getColumn(2).setPreferredWidth(300); 
+
+        
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (c instanceof JLabel) {
+                    JLabel label = (JLabel) c;
+                    label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); 
+                }
+                return c;
+            }
+        };
+
+        
+        for (int i = 0; i < requestsTable.getColumnCount(); i++) {
+            requestsTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
+        }
+
+        
+        requestsTable.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (value == null || value.toString().isEmpty()) {
+                    value = "<No comment>";
+                    setForeground(Color.GRAY);
+                } else {
+                    setForeground(table.getForeground());
+                }
+
+                
+                if (c instanceof JLabel) {
+                    JLabel label = (JLabel) c;
+                    label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                }
+
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
+
+        
+        requestsTable.getColumnModel().removeColumn(requestsTable.getColumnModel().getColumn(4)); 
+        requestsTable.getColumnModel().removeColumn(requestsTable.getColumnModel().getColumn(3)); 
+
         JScrollPane tableScrollPane = new JScrollPane(requestsTable);
         tableScrollPane.setPreferredSize(new Dimension(600, 300));
+        tableScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); 
 
-        // 🔹 Panel inferior con botones
+        
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); 
+
+        
+        jButtonAccept.setPreferredSize(new Dimension(150, 35));
+        jButtonClose.setPreferredSize(new Dimension(150, 35));
+
         bottomPanel.add(jButtonAccept);
         bottomPanel.add(jButtonClose);
 
-        // 🔹 Agregar eventos de los botones
+        
         jButtonClose.addActionListener(e -> setVisible(false));
         jButtonAccept.addActionListener(this::jButtonAccept_actionPerformed);
 
 
 
 
-        // 🔹 Agregar componentes al JFrame
+        
         add(topPanel, BorderLayout.NORTH);
         add(tableScrollPane, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
@@ -93,7 +166,7 @@ public class VisualizeRequestsGUI extends JFrame {
             return;
         }
 
-        Object rideObject = tableModel.getValueAt(selectedRow, 2);
+        Object rideObject = tableModel.getValueAt(selectedRow, 3);
         if (!(rideObject instanceof Ride)) {
             JOptionPane.showMessageDialog(this, "Error: Invalid ride selected.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -101,14 +174,14 @@ public class VisualizeRequestsGUI extends JFrame {
 
         Ride selectedRide = (Ride) rideObject;
         boolean placesUpdated = facade.UpdatePlaces(selectedRide);
-        Object request = tableModel.getValueAt(selectedRow, 3);
+        Object request = tableModel.getValueAt(selectedRow, 4);
         if (placesUpdated) {
 
             if (request instanceof RideRequest) {
                 boolean updateRequest = facade.updateRequest((RideRequest)request);
                 if (updateRequest){
                     JOptionPane.showMessageDialog(this, "Request accepted!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    tableModel.removeRow(selectedRow); // 🔹 Elimina la fila correctamente
+                    tableModel.removeRow(selectedRow); 
                 }
             }
 
@@ -179,9 +252,16 @@ public class VisualizeRequestsGUI extends JFrame {
                 if (requests != null && !requests.isEmpty()) {
                     for (RideRequest request : requests) {
                         if (request.getState().equals("Waiting")) {
+                            
+                            String rideInfo = selectedRide.getFrom() + " → " + selectedRide.getTo();
+                            if (selectedRide.getDate() != null) {
+                                rideInfo += " (" + selectedRide.getDate().toString().substring(0, 10) + ")";
+                            }
+
                             tableModel.addRow(new Object[]{
-                                    request.getUser(),
-                                    selectedRide.toString(),
+                                    request.getUser().getUsername(),
+                                    rideInfo,
+                                    request.getComment(),
                                     selectedRide,
                                     request
                             });

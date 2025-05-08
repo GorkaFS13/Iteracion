@@ -19,11 +19,11 @@ public class RegisterGUI extends JFrame {
 
 	private JLabel jLabelUsername = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Username"));
 	private JLabel jLabelPassword = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Password"));
-
+	private JLabel jLabelType = new JLabel("User Type:");
 
 
 	private JTextField jTextFieldUsername = new JTextField();
-	private JTextField jTextFieldPassword = new JTextField();
+	private JPasswordField jTextFieldPassword = new JPasswordField();
 
 
 	private JScrollPane scrollPaneEvents = new JScrollPane();
@@ -39,126 +39,112 @@ public class RegisterGUI extends JFrame {
 	private JComboBox<String> jComboType = null;
 
 	public RegisterGUI() {
+		this.setSize(new Dimension(400, 350));
+		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Register"));
+		this.setLocationRelativeTo(null); 
+		this.setResizable(false);
 		this.getContentPane().setLayout(null);
-		jContentPane = new JPanel();
+
+		
 		jComboType = new JComboBox<String>();
 		jComboType.addItem("Driver");
 		jComboType.addItem("Traveller");
 
-		jContentPane.setLayout(new GridLayout(6, 1, 0, 0));
-
-		this.setSize(new Dimension(604, 370));
-		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Register"));
-
-		jLabelUsername.setBounds(new Rectangle(6, 159, 173, 20));
-		jLabelPassword.setBounds(new Rectangle(6, 119, 173, 20));
-
-		jTextFieldUsername.setBounds(new Rectangle(139, 159, 60, 20));
-		jTextFieldPassword.setBounds(new Rectangle(139, 159, 60, 20));
-
-		scrollPaneEvents.setBounds(new Rectangle(25, 44, 346, 116));
-
-		jButtonRegister.setBounds(new Rectangle(100, 263, 130, 30));
-
+		
+		jLabelUsername.setBounds(new Rectangle(50, 70, 120, 20));
+		jTextFieldUsername.setBounds(new Rectangle(180, 70, 150, 20));
+		
+		jLabelPassword.setBounds(new Rectangle(50, 110, 120, 20));
+		jTextFieldPassword.setBounds(new Rectangle(180, 110, 150, 20));
+		
+		jLabelType.setBounds(new Rectangle(50, 150, 120, 20));
+		jComboType.setBounds(new Rectangle(180, 150, 150, 20));
+		
+		jButtonRegister.setBounds(new Rectangle(100, 200, 120, 30));
+		jButtonClose.setBounds(new Rectangle(230, 200, 100, 30));
+		
+		jLabelMsg.setBounds(new Rectangle(50, 250, 300, 20));
+		jLabelMsg.setForeground(Color.RED);
+		jLabelMsg.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		
+		this.getContentPane().add(jLabelUsername);
+		this.getContentPane().add(jTextFieldUsername);
+		this.getContentPane().add(jLabelPassword);
+		this.getContentPane().add(jTextFieldPassword);
+		this.getContentPane().add(jLabelType);
+		this.getContentPane().add(jComboType);
+		this.getContentPane().add(jButtonRegister);
+		this.getContentPane().add(jButtonClose);
+		this.getContentPane().add(jLabelMsg);
+		
+		
+		JLabel titleLabel = new JLabel(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Register"));
+		titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		titleLabel.setBounds(new Rectangle(50, 20, 300, 30));
+		this.getContentPane().add(titleLabel);
+		
+		
 		jButtonRegister.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonRegister_actionPerformed(e);
 			}
 		});
-		jButtonClose.setBounds(new Rectangle(275, 263, 130, 30));
+
 		jButtonClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonClose_actionPerformed(e);
 			}
 		});
-
-		jLabelMsg.setBounds(new Rectangle(275, 214, 305, 20));
-		jLabelMsg.setForeground(Color.red);
-
-		jLabelError.setBounds(new Rectangle(7, 191, 320, 20));
-		jLabelError.setForeground(Color.red);
-
-
-		jContentPane.add(jLabelUsername, null);
-		jContentPane.add(jTextFieldUsername, null);
-		jContentPane.add(jLabelPassword, null);
-		jContentPane.add(jTextFieldPassword, null);
-
-		jContentPane.add(jComboType, null);
-		jContentPane.add(jButtonClose, null);
-		jContentPane.add(jButtonRegister, null);
-
-		jContentPane.add(jLabelMsg, null);
-		jContentPane.add(jLabelError, null);
-		jContentPane.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-		this.setContentPane(jContentPane);
-
-
-
-	}	 
+	}
+	
 	private void jButtonRegister_actionPerformed(ActionEvent e) {
 		jLabelMsg.setText("");
 		String error=field_Errors();
-		if (error!=null) 
+		if (error!=null)
 			jLabelMsg.setText(error);
 		else
 			try {
 				BLFacade facade = MainGUI.getBusinessLogic();
 				String username = jTextFieldUsername.getText();
-				String password = jTextFieldPassword.getText();
+				String password = new String(jTextFieldPassword.getPassword());
 				String type = jComboType.getSelectedItem().toString();
 
-				User r=facade.createUser(username, password, type);
+				
+				if (username.trim().isEmpty() || password.trim().isEmpty()) {
+					jLabelMsg.setForeground(Color.RED);
+					jLabelMsg.setText("Username and password cannot be empty");
+					return;
+				}
+
+				User r = facade.createUser(username, password, type);
+				jLabelMsg.setForeground(new Color(0, 128, 0)); 
 				jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("RegisterGUI.Registered"));
+
+				
+				jTextFieldUsername.setText("");
+				jTextFieldPassword.setText("");
 
 
 
 
 			} catch (UserAlreadyExistException e1) {
-				// TODO Auto-generated catch block
+				jLabelMsg.setForeground(Color.RED);
 				jLabelMsg.setText(e1.getMessage());
+			} catch (Exception e1) {
+				jLabelMsg.setForeground(Color.RED);
+				jLabelMsg.setText("An error occurred during registration");
+				e1.printStackTrace();
 			}
 
 		}
-	
+
 
 	private void jButtonClose_actionPerformed(ActionEvent e) {
 		this.setVisible(false);
 	}
 	private String field_Errors() {
-		/*
-		try {
-			if ((fieldOrigin.getText().length()==0) || (fieldDestination.getText().length()==0) || (jTextFieldSeats.getText().length()==0) || (jTextFieldPrice.getText().length()==0))
-				return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorQuery");
-			else {
-
-				// trigger an exception if the introduced string is not a number
-				int inputSeats = Integer.parseInt(jTextFieldSeats.getText());
-
-				if (inputSeats <= 0) {
-					return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.SeatsMustBeGreaterThan0");
-				}
-				else {
-					float price = Float.parseFloat(jTextFieldPrice.getText());
-					if (price <= 0) 
-						return ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.PriceMustBeGreaterThan0");
-					
-					else 
-						return null;
-						
-				}
-			}
-		} catch (NumberFormatException e1) {
-
-			return  ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorNumber");		
-		} catch (Exception e1) {
-
-			e1.printStackTrace();
-			return null;
-
-		}
-		*/
+		
 		return null;
 	}
 }

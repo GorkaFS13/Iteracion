@@ -11,25 +11,32 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 public class Driver extends User implements Serializable{
 
-	/**
-	 *
-	 */
+	
 	private static final long serialVersionUID = 1L;
-
-
-
 
 	@XmlIDREF
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
 	private List<Ride> rides=new Vector<>();
+
 	@XmlIDREF
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
 	private List<RideRequest> rideRequests = new ArrayList<>();
+
+	@XmlIDREF
+	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
+	private List<Rating> ratings = new ArrayList<>();
+
+	private float averageRating = 0.0f;
+	private int totalRatings = 0;
+
+	@Enumerated(EnumType.STRING)
+	private CarType carType = CarType.SEDAN; 
 
 	public Driver() {
 		super();
@@ -38,11 +45,34 @@ public class Driver extends User implements Serializable{
 	public Driver(User user) {
 		super();
 		this.type = user.getType();
-		this.email = user.getUsername();
 		this.username = user.getUsername();
-		this.password = user.getPassword();
 
-		System.out.println("THis: " + this);
+		
+		if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+			this.email = user.getEmail();
+		} else {
+			
+			if (user.getUsername().contains("@")) {
+				this.email = user.getUsername();
+			} else {
+				this.email = user.getUsername() + "@gmail.com";
+			}
+		}
+
+		this.password = user.getPassword();
+		this.carType = CarType.SEDAN; 
+
+		System.out.println("Created Driver: " + this);
+	}
+
+	
+	public CarType getCarType() {
+		return carType;
+	}
+
+	
+	public void setCarType(CarType carType) {
+		this.carType = carType;
 	}
 
 
@@ -58,14 +88,7 @@ public class Driver extends User implements Serializable{
 
 
 
-	/**
-	 * This method checks if the ride already exists for that driver
-	 *
-	 * @param from the origin location
-	 * @param to the destination location
-	 * @param date the date of the ride
-	 * @return true if the ride exists and false in other case
-	 */
+	
 	public boolean doesRideExists(String from, String to, Date date)  {
 		for (Ride r:rides)
 			if ( (java.util.Objects.equals(r.getFrom(),from)) && (java.util.Objects.equals(r.getTo(),to)) && (java.util.Objects.equals(r.getDate(),date)) )
@@ -83,7 +106,10 @@ public class Driver extends User implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Driver other = (Driver) obj;
-		if (email != other.email)
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
 			return false;
 		return true;
 	}
@@ -114,7 +140,7 @@ public class Driver extends User implements Serializable{
 		List<RideRequest> requests = new ArrayList<>();
 
 		for (RideRequest request : rideRequests) {
-			if (request.getRide().equals(ride)) {  // Filtra solo las solicitudes de ese Ride
+			if (request.getRide().equals(ride)) {  
 				requests.add(request);
 			}
 		}
@@ -122,6 +148,50 @@ public class Driver extends User implements Serializable{
 		return requests;
 	}
 
+	
+	public boolean addRating(Rating rating) {
+		if (rating == null || rating.getDriver() != this) {
+			return false;
+		}
 
+		
+		ratings.add(rating);
 
+		
+		updateAverageRating();
+
+		return true;
+	}
+
+	
+	public void updateAverageRating() {
+		if (ratings.isEmpty()) {
+			averageRating = 0.0f;
+			totalRatings = 0;
+			return;
+		}
+
+		int sum = 0;
+		for (Rating rating : ratings) {
+			sum += rating.getStars();
+		}
+
+		totalRatings = ratings.size();
+		averageRating = (float) sum / totalRatings;
+	}
+
+	
+	public float getAverageRating() {
+		return averageRating;
+	}
+
+	
+	public int getTotalRatings() {
+		return totalRatings;
+	}
+
+	
+	public List<Rating> getRatings() {
+		return ratings;
+	}
 }

@@ -13,34 +13,40 @@ import java.util.Vector;
 @Entity
 public class Traveller extends User implements Serializable{
 
-	/**
-	 *
-	 */
+	
 	private static final long serialVersionUID = 1L;
-	@XmlID
-	@Id
-	private String email;
+	
 	private String name;
 	@XmlIDREF
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
 	private List<Ride> rides=new Vector<Ride>();
 
-	public Traveller(User currentUser) {
+	public Traveller() {
 		super();
 	}
 
-	public Traveller(String email, String name) {
-		this.email = email;
-		this.name = name;
+	public Traveller(User currentUser) {
+		super();
+		this.username = currentUser.getUsername();
+		this.password = currentUser.getPassword();
+		this.type = currentUser.getType();
+		this.email = currentUser.getEmail();
+		this.name = currentUser.getUsername(); 
 	}
-	
-	
+
+	public Traveller(String username, String password, String type) {
+		super(username, password, type);
+		this.name = username; 
+	}
+
+
 	public String getEmail() {
 		return email;
 	}
 
-	public void setEmail(String email) {
+	public boolean setEmail(String email) {
 		this.email = email;
+		return true;
 	}
 
 	public String getName() {
@@ -51,21 +57,15 @@ public class Traveller extends User implements Serializable{
 		this.name = name;
 	}
 
-	
-	
+
+
 	public String toString(){
 		return email+";"+name+rides;
 	}
-	
-	/**
-	 * This method creates a bet with a question, minimum bet ammount and percentual profit
-	 * 
-	 * @param question to be added to the event
-	 * @param betMinimum of that question
-	 * @return Bet
-	 */
 
-		
+	
+
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -75,11 +75,14 @@ public class Traveller extends User implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Traveller other = (Traveller) obj;
-		if (email != other.email)
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
 			return false;
 		return true;
 	}
 
 
-	
+
 }

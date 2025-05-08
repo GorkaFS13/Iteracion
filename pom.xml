@@ -43,7 +43,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 		</plugins>
 	</build>
 	<repositories>
@@ -153,6 +153,13 @@
 			<artifactId>mockito-inline</artifactId>
 			<version>3.4.0</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- JavaMail API -->
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.2</version>
 		</dependency>
 
 	</dependencies>
